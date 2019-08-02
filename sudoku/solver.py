@@ -1,20 +1,3 @@
-#!/usr/bin/python
-#
-#   This program is free software: you can redistribute it and/or modify
-#   it under the terms of the GNU General Public License as published by
-#   the Free Software Foundation, either version 3 of the License, or
-#   (at your option) any later version.
-#
-#   This program is distributed in the hope that it will be useful,
-#   but WITHOUT ANY WARRANTY; without even the implied warranty of
-#   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-#   GNU General Public License for more details.
-#
-#   You should have received a copy of the GNU General Public License
-#   along with this program.  If not, see <http://www.gnu.org/licenses/>.
-#
-#   (c) 2008 Joseph Coffland
-
 """
 This code is developed based on Joseph Coffland's work <https://github.com/jcoffland/fsudoku> which is
 available under a GNU General Public license. You should have received a copy of the GNU General Public License
@@ -26,18 +9,18 @@ import fileinput
 
 
 class Set:
-    def __init__(self, cells, indicies):
+    def __init__(self, cells, indices):
         self.cells = cells
-        self.indicies = indicies
-
+        self.indices = indices
 
     def unique(self):
         values = []
         for value in self.cells:
-            if value in values: return False
-            if value != None: values += [value]
+            if value in values:
+                return False
+            if value is not None:
+                values += [value]
         return True
-
 
 
 class Grid:
@@ -45,64 +28,58 @@ class Grid:
         self.size = size
         self.cells = cells
 
-
     def get(self, row, col):
         return self.cells[row + col * self.size]
-
 
     def set(self, row, col, value):
         self.cells[row + col * self.size] = value
 
-
-    def getRow(self, row):
+    def get_row(self, row):
         return Set(map(lambda col: self.get(row, col), range(self.size)),
                    map(lambda col: row + col * self.size, range(self.size)))
 
-
-    def getCol(self, col):
+    def get_column(self, col):
         return Set(map(lambda row: self.get(row, col), range(self.size)),
                    map(lambda row: row + col * self.size, range(self.size)))
 
-
-    def getBlock(self, blk):
-        rowOffset = (blk / 3) * 3
-        colOffset = (blk % 3) * 3
+    def get_block(self, blk):
+        row_offset = (blk / 3) * 3
+        column_offset = (blk % 3) * 3
         values = []
-        indicies = []
+        indices = []
         for row in range(3):
             for col in range(3):
-                r = row + rowOffset
-                c = col + colOffset
+                r = row + row_offset
+                c = col + column_offset
                 values += [self.get(r, c)]
-                indicies += [r + c * self.size]
+                indices += [r + c * self.size]
 
-        return Set(values, indicies)
+        return Set(values, indices)
 
-
-    def iterateSets(self):
+    def iterate_sets(self):
         sets = []
         for i in range(self.size):
-            sets += [self.getRow(i), self.getCol(i), self.getBlock(i)]
+            sets += [self.get_row(i), self.get_column(i), self.get_block(i)]
         return sets
 
-
-    def showRow(self, row):
+    def show_row(self, row):
         for col in range(self.size):
-            if col and col % 3 == 0: sys.stdout.write(' ')
+            if col and col % 3 == 0:
+                sys.stdout.write(' ')
             value = self.get(row, col)
-            if value == None: sys.stdout.write('?')
-            else: sys.stdout.write(str(value))
+            if value is None:
+                sys.stdout.write('?')
+            else:
+                sys.stdout.write(str(value))
             sys.stdout.write(' ')
-
 
     def show(self):
         for row in range(self.size):
-            self.showRow(row)
+            self.show_row(row)
             sys.stdout.write('\n')
 
             if row and row != self.size - 1 and row % 3 == 2:
                 sys.stdout.write('\n')
-
 
 
 class Puzzle:
@@ -110,66 +87,66 @@ class Puzzle:
         size = 9
         self.grid = Grid(map(lambda x: None, range(size * size)), size)
 
-
-    def isValid(self):
-        for set in self.grid.iterateSets():
+    def is_valid(self):
+        for set in self.grid.iterate_sets():
             if not set.unique():
                 return False
 
         return True
 
-
-    def assertValid(self):
-        if not self.isValid():
+    def assert_valid(self):
+        if not self.is_valid():
             print("Puzzle invalid")
             sys.exit(1)
 
-
-    def isSolved(self):
-        if not self.isValid(): return False
+    def is_solved(self):
+        if not self.is_valid():
+            return False
         for cell in self.grid.cells:
-            if cell == None: return False
+            if cell is None:
+                return False
 
         return True
 
-
     def show(self):
         self.grid.show()
-
 
     def read(self):
         row = 0
         for line in fileinput.input():
             nums = line.split()
-            if len(nums) == 0: continue
+            if len(nums) == 0:
+                continue
             if len(nums) != self.grid.size:
                 print("Invalid input at line ", row)
 
             for col in range(self.grid.size):
-                if nums[col] == '?': self.grid.set(row, col, None)
-                else: self.grid.set(row, col, int(nums[col]))
+                if nums[col] == '?':
+                    self.grid.set(row, col, None)
+                else:
+                    self.grid.set(row, col, int(nums[col]))
 
             row = row + 1
-            if row == self.grid.size: break
+            if row == self.grid.size:
+                break
 
 
 class Possible:
-    def __init__(self, value = None):
+    def __init__(self, value=None):
+        self.possible = range(1, 10)
         self.set(value)
 
-
     def set(self, value):
-        if value == None: self.possible = range(1, 10)
-        else: self.possible = [value]
-
+        if value is None:
+            self.possible = range(1, 10)
+        else:
+            self.possible = [value]
 
     def count(self):
         return len(self.possible)
 
-
     def has(self, value):
         return value in self.possible
-
 
     def remove(self, value):
         if value in self.possible:
@@ -178,30 +155,30 @@ class Possible:
         return False
 
 
-
 class PossibleGrid:
     def __init__(self, puzzle):
         self.puzzle = puzzle
         self.grid = Grid(map(lambda cell: Possible(cell), puzzle.grid.cells),
                          puzzle.grid.size)
 
-
-    def removeImpossible(self, set):
+    def remove_impossible(self, set):
         result = False
         values = []
         unset = []
         for cell in set.cells:
-            if cell.count() == 1: values += [cell.possible[0]]
-            else: unset += [cell]
+            if cell.count() == 1:
+                values += [cell.possible[0]]
+            else:
+                unset += [cell]
 
         for cell in unset:
             for value in values:
-                if cell.remove(value): result = True
-
+                if cell.remove(value):
+                    result = True
         return result
 
 
-    def findExclusives(self, set):
+    def find_exclusives(self, set):
         exclusives = []
         values = map(lambda x: [], range(self.grid.size))
 
@@ -214,32 +191,32 @@ class PossibleGrid:
             if len(values[i]) == 1:
                 exclusives += (values[i][0], i + 1)
 
-        if exclusives: return exclusives
-        else: return None
-
+        if exclusives:
+            return exclusives
+        else:
+            return None
 
     def solve(self):
         while True:
-            while len(filter(lambda set: self.removeImpossible(set),
-                             self.grid.iterateSets())):
+            while len(filter(lambda set: self.remove_impossible(set),
+                             self.grid.iterate_sets())):
                 continue
 
-            exclusives = map(self.findExclusives, self.grid.iterateSets())
+            exclusives = map(self.find_exclusives, self.grid.iterate_sets())
             exclusives = filter(lambda x: x, exclusives)
-            if not exclusives: break
+            if not exclusives:
+                break
             for pair in exclusives:
                 pair[0].set(pair[1])
 
         self.fill()
-
 
     def fill(self):
         for i in range(len(self.grid.cells)):
             if self.grid.cells[i].count() == 1:
                 self.puzzle.grid.cells[i] = self.grid.cells[i].possible[0]
 
-
-    def iterateCombinations(self, set, values = []):
+    def iterate_combinations(self, set, values=[]):
         results = []
 
         if len(values) == len(set.cells):
@@ -248,12 +225,11 @@ class PossibleGrid:
         cell = set.cells[len(values)]
         for value in cell.possible:
             if value not in values:
-                results += self.iterateCombinations(set, values + [value])
+                results += self.iterate_combinations(set, values + [value])
 
         return results
 
-
-    def tryCombinations(self, puzzle, sets, index = 0):
+    def try_combinations(self, puzzle, sets, index=0):
         if index == len(sets):
             self.puzzle.grid = puzzle.grid
             return
@@ -261,35 +237,34 @@ class PossibleGrid:
         set = sets[index]
         cpuzzle = copy.deepcopy(puzzle)
 
-        for comb in self.iterateCombinations(set):
+        for comb in self.iterate_combinations(set):
             valid = True
 
             for i in range(len(comb)):
                 cindex = set.indicies[i]
                 value = puzzle.grid.cells[cindex]
 
-                if value == None:
+                if value is None:
                     cpuzzle.grid.cells[cindex] = comb[i]
                 elif value != comb[i]:
                     valid = False
                     break
 
-            if valid and cpuzzle.isValid():
+            if valid and cpuzzle.is_valid():
                 ppuzzle = copy.deepcopy(cpuzzle)
                 possible = PossibleGrid(ppuzzle)
                 possible.solve()
 
-                if ppuzzle.isSolved():
+                if ppuzzle.is_solved():
                     self.puzzle.grid = ppuzzle.grid
                     return
 
-                elif ppuzzle.isValid():
-                    self.tryCombinations(ppuzzle, sets, index + 1)
+                elif ppuzzle.is_valid():
+                    self.try_combinations(ppuzzle, sets, index + 1)
 
-
-    def tryAllCombinations(self):
-        sets = self.grid.iterateSets()
-        self.tryCombinations(copy.deepcopy(self.puzzle), sets)
+    def try_all_combinations(self):
+        sets = self.grid.iterate_sets()
+        self.try_combinations(copy.deepcopy(self.puzzle), sets)
 
 
 def solve(puzzle):
@@ -298,10 +273,10 @@ def solve(puzzle):
     possible = PossibleGrid(puzzle)
     possible.solve()
 
-    if not puzzle.isSolved():
+    if not puzzle.is_solved():
         print("hard . . .")
         sys.stdout.flush()
-        possible.tryAllCombinations()
+        possible.try_all_combinations()
 
     print("done")
 
@@ -310,9 +285,9 @@ puzzle = Puzzle()
 
 puzzle.read()
 puzzle.show()
-puzzle.assertValid()
+puzzle.assert_valid()
 print('-------------------')
 solve(puzzle)
 
 puzzle.show()
-puzzle.assertValid()
+puzzle.assert_valid()
